@@ -1,4 +1,4 @@
-package org.mintype.pollmod.storage;
+package org.mintype.pollmod.poll;
 
 public enum PollState {
     ACTIVE,     // Poll is ongoing and players can vote

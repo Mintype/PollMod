@@ -1,7 +1,5 @@
 package org.mintype.pollmod.poll;
 
-import org.mintype.pollmod.storage.PollState;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
