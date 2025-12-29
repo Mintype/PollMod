@@ -1,5 +1,7 @@
 package org.mintype.pollmod.poll;
 
+import org.mintype.pollmod.storage.PollState;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +16,7 @@ public class Poll {
     private final Map<String, String> playerVotes;  // Player UUID -> option chosen
     private final Instant creationTime;             // When the poll was created
     private final Instant endTime;                  // When the poll ends
-    private boolean isActive;
+    private PollState state;
 
     /**
      * Create a poll.
@@ -37,7 +39,7 @@ public class Poll {
         this.creationTime = Instant.now();
         this.endTime = creationTime.plusSeconds(durationSeconds);
 
-        this.isActive = true;
+        this.state = PollState.ACTIVE;
     }
 
     public String getQuestion() {
@@ -48,13 +50,16 @@ public class Poll {
         return options;
     }
 
+    public PollState getState() {
+        return this.state;
+    }
+
     /**
      * Check if the poll is still active (not expired).
      */
     public boolean isActive() {
-        if(this.isActive)
-            isActive = Instant.now().isBefore(endTime);
-        return this.isActive;
+        if(this.state == PollState.ACTIVE) this.state = Instant.now().isBefore(endTime) ? PollState.ACTIVE : PollState.ENDED;
+        return this.state == PollState.ACTIVE;
     }
 
     public void addOption(String option) throws IllegalStateException {
@@ -102,6 +107,6 @@ public class Poll {
     }
 
     public void end() {
-        isActive = false;
+        this.state = PollState.ENDED;
     }
 }
