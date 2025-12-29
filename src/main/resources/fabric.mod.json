@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "pollmod",
+  "version": "${version}",
+
+  "name": "PollMod",
+  "description": "",
+  "authors": [],
+  "contact": {},
+
+  "license": "All-Rights-Reserved",
+  "icon": "assets/pollmod/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": ["org.mintype.pollmod.client.PollmodDataGenerator"],
+    "client": ["org.mintype.pollmod.client.PollmodClient"],
+    "main": ["org.mintype.pollmod.Pollmod"]
+  },
+
+  "mixins": [
+    "pollmod.mixins.json"
+    ,{
+      "config": "pollmod.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
