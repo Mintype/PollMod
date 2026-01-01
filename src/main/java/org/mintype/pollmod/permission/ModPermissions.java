@@ -20,7 +20,13 @@ public final class ModPermissions {
     public static final String VOTE = "pollmod.poll.vote";
 
     /**
+     * Allows updating of new polls.
+     */
+    public static final String UPDATE = "pollmod.poll.update";
+
+    /**
      * Allows ending or closing an active poll.
+     * NOT intended for regular players
      */
     public static final String END = "pollmod.poll.end";
 

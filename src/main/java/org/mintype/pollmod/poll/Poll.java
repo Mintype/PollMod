@@ -6,10 +6,13 @@ import java.util.*;
 
 public class Poll {
 
+    private final int id;
+    private final UUID creatorId;
     private final String question;
-    private final List<String> options;
-    private final Map<String, Integer> votes;
-    private final Map<String, String> playerVotes;
+    private final Map<Integer, String> options; // optionId -> optionText
+    private final Map<Integer, Integer> votes; // optionId -> voteCount
+    private final Map<String, Integer> playerVotes; // playerId -> optionId
+    private int nextOptionId;
 
     private final long durationSeconds; // -1 = infinite
     private final Instant creationTime;
@@ -23,30 +26,37 @@ public class Poll {
     /**
      * Create a poll.
      *
+     * @param id                Poll id
+     * @param creatorId         UUID of the poll creator
      * @param question          Poll question
      * @param options           List of options
      * @param durationSeconds   Duration in seconds from creation; -1 represents infinite duration
      */
-    public Poll(String question, List<String> options, long durationSeconds) {
+    public Poll(int id, UUID creatorId, String question, List<String> options, long durationSeconds) {
+        this.id = id;
+        this.creatorId = Objects.requireNonNull(creatorId);
         if (options == null || options.size() < 2) {
             throw new IllegalArgumentException("Poll must have at least two options");
         }
 
         this.question = Objects.requireNonNull(question);
-        this.options = new ArrayList<>(options);
+        this.options = new HashMap<>();
         this.votes = new HashMap<>();
         this.playerVotes = new HashMap<>();
         this.durationSeconds = durationSeconds;
+        this.nextOptionId = 0;
 
         for (String option : options) {
-            votes.put(option, 0);
+            int optionId = nextOptionId++;
+            this.options.put(optionId, option);
+            votes.put(optionId, 0);
         }
 
         this.creationTime = Instant.now();
         this.state = PollState.UNSTARTED;
     }
 
-    public void startPoll() {
+    public void start() {
         if (state == PollState.ENDED) {
             throw new IllegalStateException("Poll has already ended");
         }
@@ -69,7 +79,7 @@ public class Poll {
         this.state = PollState.ACTIVE;
     }
 
-    public void pausePoll() {
+    public void pause() {
         if (state != PollState.ACTIVE) {
             return;
         }
@@ -81,7 +91,7 @@ public class Poll {
         this.state = PollState.PAUSED;
     }
 
-    public void endPoll() {
+    public void end() {
         this.endTime = Instant.now();
         this.state = PollState.ENDED;
     }
@@ -97,19 +107,19 @@ public class Poll {
         return getState() == PollState.ACTIVE;
     }
 
-    public void vote(String playerId, String option) {
+    public void vote(String playerId, int optionId) {
         if (!isActive()) {
             throw new IllegalStateException("Poll is not active");
         }
-        if (!votes.containsKey(option)) {
+        if (!options.containsKey(optionId)) {
             throw new IllegalArgumentException("Option does not exist");
         }
         if (playerVotes.containsKey(playerId)) {
             throw new IllegalArgumentException("Player has already voted");
         }
 
-        playerVotes.put(playerId, option);
-        votes.merge(option, 1, Integer::sum);
+        playerVotes.put(playerId, optionId);
+        votes.merge(optionId, 1, Integer::sum);
     }
 
     public boolean hasPlayerVoted(String playerId) {
@@ -120,11 +130,11 @@ public class Poll {
         return question;
     }
 
-    public List<String> getOptions() {
-        return Collections.unmodifiableList(options);
+    public Map<Integer, String> getOptions() {
+        return Collections.unmodifiableMap(options);
     }
 
-    public Map<String, Integer> getVoteCounts() {
+    public Map<Integer, Integer> getVoteCounts() {
         return Collections.unmodifiableMap(votes);
     }
 
@@ -140,7 +150,7 @@ public class Poll {
         return endTime;
     }
 
-    public List<String> getWinners() {
+    public List<Integer> getWinningOptionIds() {
         int maxVotes = votes.values().stream()
                 .max(Integer::compareTo)
                 .orElse(0);
@@ -151,13 +161,28 @@ public class Poll {
                 .toList();
     }
 
-    public void addOption(String option) {
+    public UUID getCreatorId() {
+        return creatorId;
+    }
+
+    public String getOptionText(int optionId) {
+        return options.get(optionId);
+    }
+
+    public int addOption(String option) {
         if(state == PollState.ENDED) {
             throw new IllegalStateException("Cannot add option to already ended poll");
         }
-        if(options.contains(option)) {
+        if(options.containsValue(option)) {
             throw new IllegalArgumentException("Option already present in poll");
         }
-        options.add(option);
+        int optionId = nextOptionId++;
+        options.put(optionId, option);
+        votes.put(optionId, 0);
+        return optionId;
+    }
+
+    public int getId() {
+        return id;
     }
 }
