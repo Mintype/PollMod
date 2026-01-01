@@ -8,7 +8,7 @@ public class Poll {
 
     private final int id;
     private final UUID creatorId;
-    private final String question;
+    private String question;
     private final Map<Integer, String> options; // optionId -> optionText
     private final Map<Integer, Integer> votes; // optionId -> voteCount
     private final Map<String, Integer> playerVotes; // playerId -> optionId
@@ -184,5 +184,13 @@ public class Poll {
 
     public int getId() {
         return id;
+    }
+
+    public void setQuestion(String question) {
+        this.question = question;
+    }
+
+    public void deleteOption(String arg) {
+        // must delete option and all references to it in all data structures in this class
     }
 }
